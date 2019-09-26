@@ -18,6 +18,7 @@ its_my_vector <- 1:7
 its_my_vector * 3
 
 paste("Andrew", "MacDonald")
+
 paste("my fave number is", 3.14)
 
 
@@ -26,6 +27,9 @@ print_a_number <- function(number){
   print(number_to_print)
 }
 
+
 print_a_number(4)
+
+number_to_print
 
 print_a_number(its_my_vector)

@@ -1,0 +1,13 @@
+---
+title: "Manip des données"
+author: "Andrew"
+date: "26/09/2019"
+output:
+  html_document: 
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
