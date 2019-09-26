@@ -26,4 +26,38 @@ library(gapminder)
 gapminder
 ```
 
+## ggplot2
+
+```{r}
+ggplot(gapminder, aes(x = year, y = lifeExp)) + 
+  geom_point()
+```
+
+Aussi possible avec des boxplots
+
+```{r}
+ggplot(gapminder, aes(x = year, y = lifeExp, group = year)) + 
+  geom_boxplot() + 
+  geom_point()
+```
+
+line plot
+
+```{r}
+ggplot(gapminder,
+       aes(x = year,
+           y = gdpPercap,
+           group = country)) + 
+  geom_line(colour = "darkgreen",
+            size = 3,
+            alpha = 0.1)
+```
+
+mapping to a group -- couleur par continent!
+
+```{r}
+
+```
+
+
 
