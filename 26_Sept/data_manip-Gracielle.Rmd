@@ -1,0 +1,62 @@
+---
+title: "Analyse de Donées en Santé"
+author: "Gracielle Higino"
+date: "26/09/2019"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+    keep_md: true
+editor_options: 
+  chunk_output_type: console
+---
+# Project 1: data reorganization and visualization
+
+```{r load packages, echo=FALSE,results='hide', warning=FALSE,message=FALSE}
+# https://gist.github.com/stevenworthington/3178163
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("gapminder", "tidyverse")
+ipak(packages)
+```
+
+### regarde les donn�es
+
+```{r}
+gapminder
+```
+
+### ggplot2
+
+Point Plot
+```{r}
+ggplot(data = gapminder, aes(x = year, y = lifeExp)) +
+  geom_point()
+```
+- Changing colors by country
+```{r}
+ggplot(data = gapminder, aes(x = year, y = lifeExp)) +
+  geom_point(aes(color= factor(country)))
+```
+
+Boxplot
+```{r}
+ggplot(data = gapminder, aes(x = year, y = lifeExp, group = year)) +
+  geom_boxplot()
+```
+
+Lineplot
+```{r}
+ggplot(data = gapminder, aes(x = year, y = gdpPercap, group = country)) +
+  geom_line(aes(color = factor(country)), # changing color by country
+                size = 0.2, # fine lines
+                alpha = 0.5, # transparency
+                show.legend = FALSE # omitting the legend
+            )
+```
