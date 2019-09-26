@@ -19,7 +19,7 @@ library(tidyverse)
 ```
 
 ```
-## ── Attaching packages ─────────────────────────── tidyverse 1.2.1 ──
+## ── Attaching packages ─────────────────
 ```
 
 ```
@@ -30,7 +30,7 @@ library(tidyverse)
 ```
 
 ```
-## ── Conflicts ────────────────────────────── tidyverse_conflicts() ──
+## ── Conflicts ──────────────────────────
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()
 ```
@@ -63,4 +63,68 @@ gapminder
 ## # … with 1,694 more rows
 ```
 
+## ggplot2
+
+
+```r
+ggplot(gapminder, aes(x = year, y = lifeExp)) + 
+  geom_point()
+```
+
+![](data_manip_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+Aussi possible avec des boxplots
+
+
+```r
+ggplot(gapminder, aes(x = year, y = lifeExp, group = year)) + 
+  geom_boxplot() + 
+  geom_point()
+```
+
+![](data_manip_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+line plot
+
+
+```r
+ggplot(gapminder,
+       aes(x = year,
+           y = gdpPercap,
+           group = country)) + 
+  geom_line(colour = "darkgreen",
+            size = 3,
+            alpha = 0.1)
+```
+
+![](data_manip_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+mapping to a group -- couleur par continent!
+
+
+```r
+ggplot(gapminder,
+       aes(x = year,
+           y = gdpPercap,
+           group = country,
+           colour = continent)) + 
+  geom_line()
+```
+
+![](data_manip_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+facets
+
+
+```r
+ggplot(gapminder,
+       aes(x = year,
+           y = gdpPercap,
+           group = country,
+           colour = continent)) + 
+  geom_line() + 
+  facet_wrap(~continent)
+```
+
+![](data_manip_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 

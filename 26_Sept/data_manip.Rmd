@@ -56,8 +56,23 @@ ggplot(gapminder,
 mapping to a group -- couleur par continent!
 
 ```{r}
-
+ggplot(gapminder,
+       aes(x = year,
+           y = gdpPercap,
+           group = country,
+           colour = continent)) + 
+  geom_line()
 ```
 
+facets
 
+```{r}
+ggplot(gapminder,
+       aes(x = year,
+           y = gdpPercap,
+           group = country,
+           colour = continent)) + 
+  geom_line() + 
+  facet_wrap(~continent)
+```
 
