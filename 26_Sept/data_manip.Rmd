@@ -76,3 +76,64 @@ ggplot(gapminder,
   facet_wrap(~continent)
 ```
 
+## manipuler avec dplyr
+
+```{r intro_dplyr}
+head(gapminder)
+
+# choose columns
+select(gapminder, country, year)
+
+# observations after 2000
+filter(gapminder, year > 2000)
+
+# population in millions
+mutate(gapminder, pop_millions = pop / 1e6)
+
+## lowest populations
+arrange(gapminder, pop)
+
+arrange(gapminder, desc(lifeExp))
+```
+
+enchainer les operations!
+
+`browseVignettes("magrittr")`
+
+```{r}
+set.seed(1234)
+exp(mean(rnorm(20), trim = 2))
+
+set.seed(1234)
+rnorm(20) %>% mean(trim = 2) %>% exp
+
+```
+
+```{r dplyr_enchaine}
+gapminder %>% 
+  select(continent, country, year, pop) %>% 
+  filter(continent == "Oceania") %>% 
+  mutate(pop_mil = pop / 1e6)
+```
+
+## summarizing data
+
+```{r}
+gapminder %>% 
+  ## average population by continent
+  group_by(continent) %>% 
+  summarize(median_gdp = median(gdpPercap),
+            n_observations = n())
+```
+
+```{r}
+gapminder %>% 
+  # convert to millions
+  mutate(pop_million = pop / 1e6) %>% 
+  # calculate median per year per continent
+  group_by(continent, year) %>% 
+  summarise(med_pop = median(pop_million)) %>% 
+  ggplot(aes(x = year, y = med_pop, colour = continent)) + 
+  geom_line()
+```
+
