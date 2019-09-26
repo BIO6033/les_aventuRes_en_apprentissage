@@ -29,3 +29,5 @@ print_a_number <- function(number){
 print_a_number(4)
 
 print_a_number(its_my_vector)
+
+#j'ai ajouté cette ligne via Github
