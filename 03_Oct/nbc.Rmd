@@ -1,0 +1,285 @@
+---
+title: "Classification Bayésienne Naïve"
+output: 
+  pdf_document:
+         latex_engine: xelatex
+lesson: 11
+---
+
+# Classification Bayésienne Naïve
+
+## Introduction au théorème de Bayes
+
+## Les problèmes de Classification
+
+Les problèmes de classification visent à assigner des *instances*
+à des *classes*, en utilisant des *propriétés* des instances. Par
+exemple, en connaissant les mesures de différentes parties de la fleur
+(les *propriétés*), peut on assigner un échantillon (une *instance*)
+à une espèces du genre *Iris* (une *classe*)?
+
+Le raisonnement générale des méthodes de classification est le suivant:
+plus les propriétés d'une instance sont proches des propriétés d'une
+classe, plus la probabilité que cette instance appartienne à cette classe
+est élevée. De manière plus mathématique, on définit une instance comme:
+
+$$\mathbf{x} = (x_1, \dots, x_n)$$
+
+$\mathbf{x}$ est l'instance, et $x_k$ est sa k-ième propriété.
+
+Le problème que l'on cherche a résoudre est donc de mesurer
+
+$$P(C_m | \mathbf{x}) = P(C_m | x_1, x_2, \dots, x_n)$$
+
+Ici, $$C_m$$ dénote le fait d'appartenir à la m-ième classe.
+
+## La Classification Bayésienne Naïve
+
+La Classification Bayésienne Naïve (CBN) permet de résoudre des problèmes
+de Classification, en utilisant une approche Bayesienne, et en faisant des
+hypothèses qui sont Naïves (mais bien utiles). Nous allons procéder en
+deux étapes. D'abord, construire le modèle probabiliste qui décrit le
+problème de classification; ensuite, construire le classificateur, qui
+permet de passer de la probabilité à une *décision* sur la classe à
+laquelle une instance appartient.
+
+### Construction du modèle probabiliste
+
+Dans la CBN, on utilise le théorème de Bayes pour résoudre les problèmes
+mentionnés plus haut. La question centrale de la classification peut donc
+être ré-exprimée comme:
+
+$$P(C_m | \mathbf{x}) = \frac{P(C_m) \times P(\mathbf{x} | C_m)}{P(\mathbf{x})}$$
+
+Dans la pratique, la valeur du dénominateur (*preuve*) n'est pas
+intéressante, puisqu'elle ne dépend pas de la classe en question (et les
+valeurs de $\mathbf{x}$ sont connues et constantes). On peut donc simplifier
+le problème comme étant:
+
+$$P(C_m | \mathbf{x}) \propto P(C_m) \times P(\mathbf{x} | C_m)$$
+
+Cette quantité est équivalente à
+
+$$P(\mathbf{x}, C_m) =  P(x_1, \dots, x_n, C_m)$$
+
+et en appliquant les règles de calcul sur les probabilités, on peut ré-écrire
+ceci comme
+
+$$P(x_1 | x_2, \dots, C_m) P(x_2, \dots, C_m)$$
+
+puis comme
+
+$$P(x_1 | x_2, \dots, C_m) P(x_2 | x_3, \dots, C_m) P(x_3, \dots, C_m)$$
+
+jusqu'à avoir
+
+$$P(x_1 | x_2, \dots, C_m) \dots P(x_{n-1} | x_n, C_m) P(x_n | C_m) P(C_m)$$
+
+Ce qui, à première vue, complexifie considérablement les choses. **Mais!**
+On utilise une approche dite *naïve*, dans laquelle on suppose que toutes
+les propriétés des instances sont *indépendantes*. Autrement dit, si $x_1$
+n'a aucun effet sur $x_2, \dots$, alors on peut écrire
+
+$$P(x_1 | x_2, \dots, C_m) = P(x_1 | C_m)$$
+
+Et par conséquent, l'expression ci-dessus se simplifie:
+
+$$P(x_1 | C_m) P(x_2 | C_m) \dots P(x_n | C_m) P(C_m)$$
+
+On peut donc finalement simplifier le problème de classification de manière
+considérable:
+
+$$P(C_m | \mathbf{x}) \propto P(C_m)\prod_{i=1}^nP(x_i | C_m)$$
+
+### Construction du classificateur
+
+Dans les étapes précédentes, nous avons construit le modèle probabiliste, c'est à
+dire que nous sommes en mesure de calculer la forme générale du problème $P(C_m |
+\mathbf{x})$, c'est à dire la probabilité que $\mathbf{x}$ appartienne à la
+*m*-ième classe sachant les propriétés de $\mathbf{x}$. Un *classificateur*
+utilise cette information pour retourner une valeur unique, qui correspond au
+numéro de la classes à laquelle $\mathbf{x}$ appartient.
+
+Dans la CBN, on utilise en générale un classificateur très simple: *argmax*. On
+calcule la probabilité que $\mathbf{x}$ appartienne à chacune des classes
+possibles, et on assigne $\mathbf{x}$ à la classe qui a la probabilité la plus
+élevée. Plus formellement, on représente par $\hat y$ la classe à laquelle
+l'instance $\mathbf{x}$ appartient,
+
+$$\hat y = \text{argmax}_{k\in{1\dots K}} P(C_m)\prod_{i=1}^nP(x_i | C_m)$$
+
+## Application
+
+Nous allons tenter de déterminer à quelle espèce du genre *Iris* une plante dont
+on connaît les mesures appartient. `R` possède un jeu de données avec toutes les
+informations nécessaires:
+
+```{r load_iris}
+data(iris)
+head(iris)
+```
+
+Nous allons garder la première ligne pour l'identifier, et utiliser l'ensemble
+des autres lignes pour faire le travail de prédiction.
+
+```{r split_iris}
+problem <- iris[1,]
+training <- iris[-1,]
+```
+
+> **Exercice**
+>
+> Quelle est l'instance, quelles sont les classes, et quelles sont les
+> propriétés?
+
+La première étape consiste a déterminer comment on peut estimer $$P(x = v |
+C_m)$$, c'est à dire la probabilité d'observer une valeur $$c$$ pour la
+propriété $$x$$ si on appartient à la classe $$m$$. Toutes les propriétés sont
+représentées par des variables quantitatives, et on va supposer que la
+distribution de ces variables est suffisament normale pour être représentée par
+une Gaussienne.
+
+La formule donnant la distribution de probabilité d'une loi normale, paramétrée
+par sa moyenne et sa variance, est (comme nous le savons tous sans aller le
+chercher sur Wikipédia)
+
+$$P(x=v|C) = \frac{1}{\sqrt{2\pi \sigma^2_C}}\times \text{exp}\left[-\frac{(v-\mu_C)^2}{2\sigma^2_C}\right]$$
+
+Dans cette formule, $$\mu_C$$ est la valeur moyenne de la propriété $$x$$ pour
+les instance de la classe $$C$$, et $$\sigma^2_C$$ est leur variance.
+
+Il faut donc calculer ces deux quantités pour chaque espèce. Nous allons donc
+passer le jeu de données au format long.
+
+```{r mean_var}
+library(tidyverse)
+long_training <- training %>% 
+  gather(variable, value, Sepal.Length:Petal.Width) 
+  
+  
+summary_statistics <- long_training %>% 
+  group_by(Species, variable) %>% 
+  summarize(mean = mean(value),
+            sd = sd(value))
+
+head(summary_statistics)
+```
+
+Une fois cette étape effectuée, on peut calculer la probabilité qu'une mesure
+donnée appartienne à une classe, avec la fonction `dnorm` (`R` a énormément de
+fonctions déjà écrites pour mesurer les densités de probabilités).
+
+La fonction `dnorm` (`?dnorm` pour en savoir plus) prend trois arguments: la
+valeur, la moyenne de la distribution, et la déviation standard. Nous allons
+commencer par une illustration: quelle est la probabilité que la longeur du
+pétale `Petal.Length` de notre instance appartienne à l'espèce `setosa`?
+
+```{r show_dnorm}
+setosa_petal_length <- filter(summary_statistics,
+                              Species == "setosa",
+                              variable == "Petal.Length")
+
+setosa_petal_length
+
+proba_petal_length_setosa <- dnorm(
+  problem$`Petal.Length`,
+  setosa_petal_length$mean,
+  setosa_petal_length$sd
+  )
+
+proba_petal_length_setosa
+```
+
+Remarquez au passage que cette valeur est supérieure à 1 -- c'est parce qu'il
+s'agit d'une densité de probabilité, et pas de la probabilité elle même.
+
+On voudrait maintenant automatiser un petit peu ce processus... La quantité que
+l'on cherche a mesurer est toujours la même: quelle est la probabilité de la
+classe sachant la valeur de la propriété. Nous allons résoudre ce problème avec
+une fonction:
+
+```{r function_density_nbc}
+proba_class_knowing_feature <- function(class_name, feature_name, summary, problem){
+  class_feature <- subset(summary,
+    (Species == class_name) & (variable == feature_name)
+    )
+  proba_feature_class <- dnorm(
+    problem[1, feature_name],
+    class_feature$mean,
+    class_feature$sd)
+  return(proba_feature_class)
+}
+
+proba_class_knowing_feature("setosa", "Petal.Length", summary_statistics, problem)
+```
+
+On peut vérifier que la fonction retourne la même valeur que lorsque nous avons
+fait le calcul étape par étape.
+
+On peut maintenant aller calculer l'ensemble des probabilités par propriété et
+par classe:
+
+```{r apply_proba_nbc}
+proba_class_feature <- summary_statistics %>% 
+  mutate(id = map2_dbl(Species, variable, proba_class_knowing_feature,
+                       summary = summary_statistics, problem = problem))
+
+head(proba_class_feature)
+```
+
+À ce stade, nous avons *presque* toutes les informations pour prédire la classe à
+laquelle notre échantillon appartient. Il reste seulement a mesurer la
+probabilité de chaque classe. Cette étape fait appel à notre intuition
+biologique et à notre connaissance du problème. Si on veut ne pas prendre de
+décision, on peut supposer que les trois espèces (`setosa`, `versicolor` et
+`virginica`) ont la même probabilité (par exemple, dans un peuplement d'Iris, on
+trouvera les trois avec la même fréquence). On peut aussi regarder dans les
+données combien de chaque espèce on a, et utiliser ceci comme une information
+sur leur abondance -- si on a mesuré trois fois plus de *I. seticolor*,
+peut-être que cette espèce est  plus abondante dans la nature, et qu'un
+échantillon pris au hasard a une plus forte probabilité d'appartenir à cette
+espèce.
+
+```{r proba_classes_iris}
+table(training$Species)
+```
+
+Hmm. Les trois espèces semblent équiprobables dans ce jeu de donnée. Nous allons
+donc donner à chaque classe $m$ la même probabilité: $$P(C_m) = \frac{1}{3}$$.
+
+Notez au passage que c'est une force des méthodes Bayesiennes: on peut intégrer
+de l'information prioritaire sur les données, qui reflète notre connaissance
+biologique.
+
+Nous allons maintenant construire le classificateur. La formule exacte du
+classificateur est:
+
+~~~
+P(species) P(petal length | species) P(petal width | species) ...
+~~~
+
+En `R`, on peut l'écrire sous la forme suivante:
+
+```{r classifier_nbc}
+species <- as.character(unique(iris$Species))
+
+prior <- c("setosa" = 1/3, "versicolor" = 1/3, "virginica" = 1/3)
+
+proba_class_feature %>% 
+  mutate(prior = prior[Species],
+         p = prior * id) %>% 
+  group_by(Species) %>% 
+  dplyr::summarise(assign = prod(p)) %>% 
+  arrange(desc(assign)) %>% 
+  knitr::kable(.)
+
+```
+
+Et c'est maintenant le moment de vérité -- on peut aller regarder dans la
+variable `problem` à quelle espèce notre échantillon appartenait:
+
+```{r drumroll_please_nbc}
+as.character(problem$Species)
+```
+
+**Ça marche!**
