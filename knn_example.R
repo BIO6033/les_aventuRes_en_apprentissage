@@ -7,16 +7,36 @@ library(tidyverse)
 library(caret)
 library(ggplot2)
 
-wdbc <- read_csv("https://raw.githubusercontent.com/BIO6033/course_resources/master/data/wdbc.csv")
+wdbc <- read_csv("https://raw.githubusercontent.com/BIO6033/course_resources/master/data/wdbc.csv",
+                 col_types = "ccdddddddddddddddddddddddddddddd")
 
 # Select only the mean columns
 wdbc_means <- wdbc %>% 
   select(ID_number:fractal_dimension_mean)
 
-scale2 <- function(x, na.rm = FALSE) (x - mean(x, na.rm = na.rm)) / sd(x, na.rm)
+wdbc %>% 
+  select(ID_number, Diagnosis, matches("mean"))
+
+
+wdbc %>% 
+  select(ID_number, Diagnosis, ends_with("mean"))
+
+
+scale2 <- function(x) (x - mean(x, na.rm = TRUE)) / sd(x, TRUE)
+
+scale2 <- function(j) {
+  moyenne <- mean(j, na.rm = TRUE)
+  ecart <- sd(j, na.rm = TRUE)
+  resultat <- (j - moyenne) / ecart
+  return(resultat)
+}
+
+wallets <- c(193, 201, 298, 120)
+
+scale2(wallets)
+
 # standardize
 wdbc_stand <- wdbc_means %>% 
-  mutate(ID_number = factor(ID_number)) %>% 
   mutate_if(is.double, scale2)
 
 wdbc_stand %>% glimpse
