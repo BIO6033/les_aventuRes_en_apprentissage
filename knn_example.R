@@ -56,11 +56,16 @@ wdbc %>%
   summarize(n = n(),
             percentage = n() / num_obs * 100)
 
+wdbc_stand %>% 
+  ggplot(aes(x = perimeter_mean, y = concavity_mean, colour = Diagnosis)) + 
+  geom_point() + 
+  scale_color_brewer(type = "qual", palette = 2)
+  # scale_color_viridis_d()
 
 # format data for analysis ------------------------------------------------
 
 cancer_train <- wdbc_stand %>%
-  select("perimeter_mean", "concavity_mean") 
+  select(perimeter_mean, concavity_mean) 
 
 head(cancer_train)
 
@@ -81,8 +86,8 @@ predict(object = model_knn, newdata = new_obs)
 
 # visualizing model spread to the data ------------------------------------
 
-new_perim <- seq(from = min(cancer_train$perimeter_mean), to = max(cancer_train$perimeter_mean), length.out = 200)
-new_concav <- seq(from = min(cancer_train$concavity_mean), to = max(cancer_train$concavity_mean), length.out = 200)
+new_perim <- seq(from = min(cancer_train$perimeter_mean), to = max(cancer_train$perimeter_mean), length.out = 120)
+new_concav <- seq(from = min(cancer_train$concavity_mean), to = max(cancer_train$concavity_mean), length.out = 120)
 
 grid_data <- expand_grid(perimeter_mean = new_perim,
                          concavity_mean = new_concav)
@@ -91,16 +96,16 @@ grid_data$Diagnosis <- predict(object = model_knn, newdata = as.data.frame(grid_
 
 wdbc_stand %>% 
   ggplot(aes(x = perimeter_mean, y = concavity_mean, color = Diagnosis, fill = Diagnosis)) + 
-  geom_point(data = grid_data, alpha = 0.3) + 
-  geom_point(alpha = 0.7, pch = 21, color = "black") + 
+  geom_point(data = grid_data, alpha = 0.8) + 
+  geom_point(alpha = 1, pch = 21, color = "black") + 
   scale_color_brewer(type = "qual") + 
   scale_fill_brewer(type = "qual")
 
 
 # manual calculation -------------------------------------------------------------
 
-new_obs_Perimeter <- 2
-new_obs_Concavity <- 2
+new_obs_Perimeter <- 0
+new_obs_Concavity <- 0
 
 # manual calculation
 wdbc_stand %>% 
