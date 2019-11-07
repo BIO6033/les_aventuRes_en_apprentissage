@@ -88,7 +88,7 @@ density_plot +
 # https://towardsdatascience.com/what-is-out-of-bag-oob-score-in-random-forest-a7fa23d710
 
 
-# examining an example ----------------------------------------------------
+# randomforest 1 predictor ----------------------------------------------------
 
 
 fit <- randomForest(margin ~ day, data = polls_2008)
@@ -106,7 +106,7 @@ range(polls_2008$day)
 
 
 # counterfactual, smooth data
-fake_days <- data.frame(day =  seq(from = -155, to = -1, length.out = 3000))
+fake_days <- data.frame(day =  seq(from = -170, to = -1, length.out = 3000))
 
 fake_days %>%
   mutate(y_hat = predict(fit, newdata = fake_days)) %>% 
@@ -129,12 +129,14 @@ long_trees <- all_pred$individual %>%
   pivot_longer(-day, values_to = "prediction", names_to = "tree")
 
 # there is a lot here! simplify the numbers of trees
-some_trees <- long_trees$tree %>% unique %>% sample(size = 50, replace = FALSE)
+some_trees <- long_trees$tree %>% unique %>% sample(size = 5, replace = FALSE)
 
 long_trees %>% 
   filter(tree %in% some_trees) %>% 
-  ggplot(aes(day, prediction)) +
-  geom_point(alpha = 0.02)
+  ggplot(aes(day, prediction, group = tree)) +
+  geom_line(alpha = 0.8) + 
+  facet_wrap(~tree) + 
+  geom_point(aes(day, margin), data = polls_2008, inherit.aes = FALSE, alpha = 0.2)
 
 ## multiple variable randomforests
 
@@ -163,3 +165,16 @@ confusionMatrix(predict(train_rf_2, mnist_27$test), mnist_27$test$y)$overall["Ac
 
 devtools::install_github("MI2DataLab/randomForestExplainer")
 
+data(Boston, package = "MASS")
+Boston$chas <- as.logical(Boston$chas)
+str(Boston)
+set.seed(2017)
+forest <- randomForest(medv ~ ., data = Boston, localImp = TRUE)
+
+# min_depth_frame <- min_depth_distribution(forest)
+# save(min_depth_frame, file = "min_depth_frame.rda")
+min_depth_frame <- min_depth_distribution(forest)
+head(min_depth_frame, n = 10)
+
+# plot_min_depth_distribution(forest) # gives the same result as below but takes longer
+plot_min_depth_distribution(min_depth_frame)
