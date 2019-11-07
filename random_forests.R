@@ -178,3 +178,33 @@ head(min_depth_frame, n = 10)
 
 # plot_min_depth_distribution(forest) # gives the same result as below but takes longer
 plot_min_depth_distribution(min_depth_frame)
+
+importance_frame <- measure_importance(forest)
+
+importance_frame %>% 
+  ggplot(aes(x = mean_min_depth, y = times_a_root)) + geom_point()
+
+plot_multi_way_importance(importance_frame, size_measure = "no_of_nodes")
+
+
+## project suggestion
+
+redwine <- readr::read_delim("https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv", delim = ";")
+
+glimpse(redwine)
+
+names(redwine) <- janitor::make_clean_names(names(redwine))
+
+glimpse(redwine)
+
+redwine %>% 
+  pivot_longer(everything(), names_to = "var", values_to = "value") %>% 
+  ggplot(aes(x = value)) + 
+  geom_density() + 
+  facet_wrap(~var, scales = "free")
+
+
+redwine %>% 
+  pivot_longer(everything(), names_to = "var", values_to = "value") %>% 
+  ggplot(aes(x = var, y = value)) + 
+  geom_boxplot()
