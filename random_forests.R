@@ -1,23 +1,57 @@
+library(randomForest)
+library(caret)
+library(randomForest)
+library(randomForestExplainer)
+library(tidyverse)
 
 
 # load packages and data --------------------------------------------------
 
 
-library("randomForest")
+
 data("polls_2008", package = "dslabs")
 #remotes::install_github("njtierney/broomstick")
 
 
 # bootstrapping example ---------------------------------------------------
 
+xs <- c(42, 32, 88, 23, 6)
+
+median(xs)
+
+# generate samples
+sample(xs, 5, replace = TRUE)
+#sample(xs, 5, replace = FALSE)
+
+# do this many times
+list_xs <- replicate(20, sample(xs, 5, replace = TRUE), simplify = FALSE)
+
+train <- list(1, "science")
+train
+train[1]  # un list!
+train[[1]] # le contenu du ce parti liste
+
+list_xs
+
+# for loop
+# lapply
+lapply(list_xs, median) # redonne un list
+sapply(list_xs, median) # un vecteur (si possible)
+
+## via purrr
+map(list_xs, median)
+map_dbl(list_xs, median)
+
+
+
 # There is a well-known expression for the confidence interval of a mean, but
 # none for the confidence interval of *median* 
 
-library(tidyverse)
+
 normal_numbers <- tribble(~ mean, ~sd,  ~n,
-        160,      5,  200,
-        155,      3,  250,
-        170,      4,   300)
+                          160,      5,  200,
+                          155,      3,  250,
+                          170,      4,   300)
 
 
 simulated_values_list <- pmap(normal_numbers, rnorm)
@@ -104,7 +138,7 @@ long_trees %>%
 
 ## multiple variable randomforests
 
-library(caret)
+
 data("mnist_27", package = "dslabs")
 train_rf <- randomForest(y ~ ., data=mnist_27$train)
 confusionMatrix(predict(train_rf, mnist_27$test), mnist_27$test$y)$overall["Accuracy"]
@@ -126,6 +160,6 @@ confusionMatrix(predict(train_rf_2, mnist_27$test), mnist_27$test$y)$overall["Ac
 # randomForestExplainer ---------------------------------------------------
 
 # using randomForestExplainer https://cran.rstudio.com/web/packages/randomForestExplainer/vignettes/randomForestExplainer.html
-library(randomForest)
+
 devtools::install_github("MI2DataLab/randomForestExplainer")
-library(randomForestExplainer)
+
