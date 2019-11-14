@@ -15,6 +15,7 @@ tibble(x = rnorm(300, 0, 3)) %>%
 
 ## what are the X values going to be
 
+set.seed(4812)
 line_n <- 40
 
 x <- runif(line_n, min = -3, max = 3)
@@ -22,20 +23,23 @@ x <- runif(line_n, min = -3, max = 3)
 x; plot(x)
 plot(rank(x), x)
 
-y_avg <- 14.5
+y_intercept <- 14.5
 y_slope <- 2
 
 ys <- y_avg + x * y_slope
 
 plot(x, ys)
 
-y_obs <- rnorm(line_n, mean = ys, sd = 2)
+## rnorm for more than one response
+rnorm(2, mean = c(0, 100), sd = 1)
 
+y_obs <- rnorm(line_n, mean = ys, sd = 2)
 plot(x, y_obs, ylim = c(5,25))
 
 # linear model
 line_lm <- lm(y_obs ~ x)
 
+line_lm
 coef(line_lm)
 
 broom::tidy(line_lm)
