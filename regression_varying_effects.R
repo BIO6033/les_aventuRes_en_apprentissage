@@ -414,3 +414,9 @@ pisa_cc %>%
   geom_line(aes(y = sci_predict))
 
 ## https://twitter.com/ucfagls/status/1196845204252188673
+
+
+## Analyze pisa
+## groups = year, continent
+## responses -- reading, science, math
+## predictors -- lifeExp, pop, gdpPercap
