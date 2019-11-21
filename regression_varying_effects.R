@@ -8,28 +8,62 @@ library(ggridges)
 
 # categories --------------------------------------------------------------
 
+#modifie du vignette tidybayes
+
 set.seed(5)
 n <- 10
 n_condition <- 5
 ABC <-
   tibble(
     condition = rep(c("A", "B", "C", "D", "E"), n),
-    response = rnorm(n * 5, c(0, 1, 2, 1, -1), 0.5)
+    response = rnorm(n * n_condition, c(6, 7, 7.5, 8, 7.1), 0.5)
   )
+
+ABC
 
 ABC %>%
   ggplot(aes(y = condition, x = response)) +
   geom_point(pch = 21, size = 4, stroke = 1.4, fill = "#41b6c4")
 
-m <- brm(
-  response ~ (1 | condition), data = ABC, 
-  control = list(adapt_delta = .99),
-  prior = c(
-    prior(normal(0, 1), class = Intercept),
-    prior(student_t(3, 0, 1), class = sd),
-    prior(student_t(3, 0, 1), class = sigma)
-  )
+
+## calculate mean effects -- no pooling
+ABC %>% 
+  group_by(condition) %>% 
+  summarise(m = mean(response))
+
+## calculate full pooling
+mean(ABC$response)
+
+## two reasons -- low sample size, extreme values
+
+modelformula <- bf(response ~ 1 + (1 | condition))
+# regard ?brmsformula
+get_prior(modelformula, data = ABC)
+
+ABC_prior = c(
+  prior(normal(0, 1), class = Intercept),
+  prior(exponential(2), class = sd),
+  prior(exponential(2), class = sigma)
 )
+
+ABC_prior
+
+m <- brm(
+  response ~ (1 | condition), 
+  data = ABC, 
+  control = list(adapt_delta = .99),
+
+)
+
+## prior for sleep
+curve(dnorm(x, 6.5, 1.4), xlim = c(0, 14))
+
+rnorm(40, 6.5, 1.4)
+
+## what is an exponential
+curve(dexp(x,2), xlim = c(0,5), col = "red")
+curve(dt(x, 1, 0), add = TRUE, col = "blue")
+curve(dcauchy(x,0,2), add = TRUE, col = "orange")
 
 ABC %>% 
   select(condition) %>%
@@ -37,7 +71,10 @@ ABC %>%
   add_predicted_draws(m) %>%
   ggplot(aes(x = .prediction, y = condition)) +
   geom_density_ridges(fill = "#41b6c4") + 
-  theme_minimal()
+  theme_minimal() + 
+  geom_point(aes(y = condition, x = response),
+             pch = 21, size = 4, stroke = 1.4, fill = "#41b6c4",
+             data = ABC)
 
 ABC %>% 
   select(condition) %>%
@@ -47,6 +84,17 @@ ABC %>%
   geom_density_ridges(fill = "#41b6c4") +  
   theme_minimal()
 
+
+
+ABC %>% 
+  select(condition) %>%
+  distinct %>% 
+  add_predicted_draws(m, re_formula = ~(1|condition), n = 100) %>% 
+  ggplot(aes(y = condition, x = .prediction)) + 
+  geom_point(pch = 21, fill = "darkorange", size = 2) + 
+  geom_point(aes(x = response), pch = 21, fill = "darkblue", data = ABC, size = 3, alpha = 0.6)
+  
+  
 ABC %>% 
   select(condition) %>% 
   distinct %>% 
