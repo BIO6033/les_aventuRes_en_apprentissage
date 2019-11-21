@@ -29,7 +29,8 @@ ABC %>%
 ## calculate mean effects -- no pooling
 ABC %>% 
   group_by(condition) %>% 
-  summarise(m = mean(response))
+  summarise(m = mean(response)) %>% 
+  add_column(real = c(6, 7, 7.5, 8, 7.1))
 
 ## calculate full pooling
 mean(ABC$response)
@@ -41,19 +42,52 @@ modelformula <- bf(response ~ 1 + (1 | condition))
 get_prior(modelformula, data = ABC)
 
 ABC_prior = c(
-  prior(normal(0, 1), class = Intercept),
+  prior(normal(6.5, 1.4), class = Intercept),
   prior(exponential(2), class = sd),
   prior(exponential(2), class = sigma)
 )
 
 ABC_prior
 
-m <- brm(
+## visualize prior predictions
+tibble(condition = c("A", "B", "C", "D", "E")) %>% 
+  add_predicted_draws(ABC_prior)
+
+## do it manually!
+sd_tea_effect <- rexp(1, 2)
+sd_sleep_response <- rexp(1, 2)
+moyen_sleep <- rnorm(1, 6.5, 1.4)
+
+teas <- tibble(condition = c("A", "B", "C", "D", "E"))
+
+teas %>% 
+  mutate(tea_effect = rnorm(n = 5, 0, sd_tea_effect),
+         moyen_response = moyen_sleep + tea_effect,
+         response = rnorm(5, moyen_response, sd_sleep_response))
+
+## repeating tea effect for each person
+tea_effects <- rnorm(n = 5, 0, sd_tea_effect)
+names(tea_effects) <- c("A", "B", "C", "D", "E")
+tea_effects
+
+tea_effects["B"]
+teas <- tibble(condition = rep(c("A", "B", "C", "D", "E"), 10))
+
+teas %>% 
+  mutate(tea_effect = tea_effects[condition],
+         moyen_response = moyen_sleep + tea_effect,
+         response = rnorm(nrow(teas), moyen_response, sd_sleep_response)) %>% 
+  ggplot(aes(x = response, y = condition)) + 
+  geom_point()
+
+m_prior <- brm(
   response ~ (1 | condition), 
   data = ABC, 
-  control = list(adapt_delta = .99),
-
+  control = list(adapt_delta = .8),
+  prior = ABC_prior
 )
+
+m_prior
 
 ## prior for sleep
 curve(dnorm(x, 6.5, 1.4), xlim = c(0, 14))
@@ -108,6 +142,38 @@ ABC %>%
   
 
 
+# for extreme values ------------------------------------------------------
+
+ABC_extreme <-
+  tibble(
+    condition = rep(LETTERS[1:15], n),
+    response = rnorm(n * 15, c(rnorm(14, 8, 0.2), 3), 0.5)
+  )
+
+ABC_extreme %>% 
+  ggplot(aes(y = condition, x = response)) +
+  geom_point(pch = 21, size = 4, stroke = 1.4, fill = "#41b6c4")
+
+m_extreme <- brm(
+  response ~ (1 | condition), 
+  data = ABC_extreme, 
+  control = list(adapt_delta = .8),
+  prior = ABC_prior
+)
+
+m_extreme
+
+## posterior predictions
+ABC_extreme %>% 
+  select(condition) %>%
+  distinct %>% 
+  add_predicted_draws(m_extreme, re_formula = ~(1|condition), n = 500) %>% 
+  ggplot(aes(y = condition, x = .prediction)) + 
+  geom_density_ridges() + 
+  geom_point(aes(x = response), pch = 21, fill = "darkblue", data = ABC_extreme, size = 3, alpha = 0.6)
+
+
+
 # varying intercept regression --------------------------------------------
 
 
@@ -149,6 +215,11 @@ priors <- c(set_prior("normal(0, 1)", class = "b", coef = "logpop"),
 
 tools_pop_brms <- brm(tools_pop_bf, data = Kline, prior = priors, chains = 1, cores =1)
 
+Kline %>% 
+  add_predicted_draws(tools_pop_brms, n = 100) %>% 
+  ggplot(aes(x = logpop, y = .prediction)) + 
+  geom_point(alpha = 0.2) + 
+  geom_point(aes(y = total_tools), data = Kline, colour = "blue", size = 3)
 
 
 # varying slopes ----------------------------------------------------------
